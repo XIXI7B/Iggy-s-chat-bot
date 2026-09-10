@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Iggy's Diner — AI Assistant Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --cherry: #C41E3A;
+    --cream: #FFF8ED;
+    --chrome: #C9CDD1;
+    --charcoal: #1E1B18;
+    --mustard: #E8A33D;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--cream);
+    color: var(--charcoal);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .mock-site {
+    width: 100%;
+    max-width: 900px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 30px 60px -20px rgba(30,27,24,0.3);
+    overflow: hidden;
+    position: relative;
+    border: 3px solid var(--charcoal);
+  }
+
+  .checker-strip {
+    height: 10px;
+    background-image: repeating-linear-gradient(90deg, var(--charcoal) 0 20px, var(--cream) 20px 40px);
+  }
+
+  .mock-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 36px;
+    background: var(--charcoal);
+    border-bottom: 4px solid var(--cherry);
+  }
+
+  .mock-nav .brand {
+    font-family: 'Alfa Slab One', serif;
+    font-size: 24px;
+    color: var(--cream);
+    letter-spacing: 0.5px;
+  }
+
+  .mock-nav .brand span {
+    color: var(--mustard);
+  }
+
+  .mock-nav .links {
+    display: flex;
+    gap: 26px;
+    font-size: 13px;
+    color: var(--chrome);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .mock-hero {
+    padding: 60px 36px 80px;
+    max-width: 500px;
+  }
+
+  .mock-hero .kicker {
+    color: var(--cherry);
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+
+  .mock-hero h1 {
+    font-family: 'Alfa Slab One', serif;
+    font-size: 36px;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    color: var(--charcoal);
+  }
+
+  .mock-hero p {
+    font-size: 15px;
+    color: #55504A;
+    line-height: 1.6;
+  }
+
+  .badge {
+    position: absolute;
+    top: 22px;
+    right: 36px;
+    font-size: 11px;
+    color: var(--charcoal);
+    background: var(--mustard);
+    padding: 5px 12px;
+    border-radius: 3px;
+    font-weight: 600;
+    z-index: 5;
+  }
+
+  .chat-widget {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    width: 340px;
+    background: #fff;
+    border-radius: 8px;
+    border: 3px solid var(--charcoal);
+    box-shadow: 0 20px 45px -15px rgba(30,27,24,0.4);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .chat-header {
+    background: var(--cherry);
+    color: #fff;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .chat-header .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--mustard);
+  }
+
+  .chat-header .title {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .chat-header .subtitle {
+    font-size: 11px;
+    color: #FFD9D9;
+  }
+
+  .chat-body {
+    height: 320px;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--cream);
+  }
+
+  .msg {
+    max-width: 82%;
+    padding: 9px 13px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  .msg.bot {
+    background: #fff;
+    border: 1px solid #E5DCC9;
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+  }
+
+  .msg.user {
+    background: var(--charcoal);
+    color: #fff;
+    align-self: flex-end;
+    border-bottom-right-radius: 2px;
+  }
+
+  .msg.typing {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 12px 14px;
+  }
+
+  .msg.typing span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #B5AA92;
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+
+  .msg.typing span:nth-child(2) { animation-delay: 0.15s; }
+  .msg.typing span:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-3px); opacity: 1; }
+  }
+
+  .chat-input {
+    display: flex;
+    border-top: 1px solid #E5DCC9;
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .chat-input input {
+    flex: 1;
+    border: 1px solid #E5DCC9;
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+  }
+
+  .chat-input input:focus {
+    border-color: var(--cherry);
+  }
+
+  .chat-input button {
+    background: var(--cherry);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .chat-input button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 16px 12px;
+  }
+
+  .suggestions button {
+    font-size: 11.5px;
+    background: #fff;
+    border: 1px solid #E5DCC9;
+    color: #55504A;
+    padding: 5px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .suggestions button:hover {
+    border-color: var(--cherry);
+    color: var(--cherry);
+  }
+</style>
+</head>
+<body>
+
+<div class="mock-site">
+  <span class="badge">Sample built for: Iggy's Diner, Carthage MO</span>
+  <div class="checker-strip"></div>
+  <div class="mock-nav">
+    <div class="brand">IGGY'S <span>DINER</span></div>
+    <div class="links">
+      <span>Menu</span>
+      <span>Route 66</span>
+      <span>Visit Us</span>
+    </div>
+  </div>
+
+  <div class="mock-hero">
+    <div class="kicker">SINCE 1999 · ROUTE 66 · CARTHAGE, MO</div>
+    <h1>Good food, friendly service, a little bit of the '50s.</h1>
+    <p>Breakfast, lunch, and dinner served up in a classic Happy-Days-style diner. Got a question? Ask our assistant below — hours, menu, or catering, day or night.</p>
+  </div>
+
+  <div class="chat-widget">
+    <div class="chat-header">
+      <div class="dot"></div>
+      <div>
+        <div class="title">Iggy's Assistant</div>
+        <div class="subtitle">Usually replies in seconds</div>
+      </div>
+    </div>
+
+    <div class="chat-body" id="chatBody">
+      <div class="msg bot">Hey there! I'm Iggy's virtual assistant. Ask me about our hours, menu, or specials — happy to help.</div>
+    </div>
+
+    <div class="suggestions" id="suggestions">
+      <button onclick="sendSuggestion('What are your hours?')">What are your hours?</button>
+      <button onclick="sendSuggestion('What is Spaghetti Red?')">What's Spaghetti Red?</button>
+      <button onclick="sendSuggestion('Do you take reservations?')">Reservations?</button>
+    </div>
+
+    <div class="chat-input">
+      <input type="text" id="userInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter') sendMessage()">
+      <button id="sendBtn" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const chatBody = document.getElementById('chatBody');
+  const userInput = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const suggestions = document.getElementById('suggestions');
+
+  // NOTE: This info was pulled from public listings for demo purposes.
+  // Before pitching this to Iggy's, verify hours/menu details with them directly.
+  const businessContext = `You are the friendly AI assistant for Iggy's Diner, a classic 1950s-style Route 66 diner in Carthage, Missouri, open since 1999.
+Facts to use: Located at 2400 Grand Ave, Carthage, MO. Open daily roughly 7am-8pm (Sunday hours may run shorter, closer to 3pm). Decor includes Route 66, Elvis, and Marilyn Monroe memorabilia, records on the walls, family-friendly. Menu highlights: Texas French Toast, Country Fried Steak, Chicken Fried Chicken, Catfish, classic burgers (including a chili cheese burger), buffalo chicken nacho fries, and their local specialty "Spaghetti Red" (spaghetti topped with chili, pickles, and onions). Breakfast includes omelettes, biscuits and gravy, and hashbrowns.
+Keep replies short (2-3 sentences max), warm and a little nostalgic in tone, like a friendly diner waitress would talk. If asked something you don't have info on (like reservations or exact daily specials), say you're not sure and suggest calling the diner directly.`;
+
+  let history = [];
+
+  function addMessage(text, sender) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + sender;
+    div.textContent = text;
+    chatBody.appendChild(div);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    return div;
+  }
+
+  function addTyping() {
+    const div = document.createElement('div');
+    div.className = 'msg bot typing';
+    div.innerHTML = '<span></span><span></span><span></span>';
+    chatBody.appendChild(div);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    return div;
+  }
+
+  function sendSuggestion(text) {
+    userInput.value = text;
+    sendMessage();
+    suggestions.style.display = 'none';
+  }
+
+  async function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text) return;
+
+    suggestions.style.display = 'none';
+    addMessage(text, 'user');
+    history.push({ role: 'user', content: text });
+    userInput.value = '';
+    userInput.disabled = true;
+    sendBtn.disabled = true;
+
+    const typingEl = addTyping();
+
+    try {
+      // This now calls YOUR backend function, not Anthropic directly.
+      // Change this URL to match wherever you deploy the function
+      // (e.g. https://your-project.vercel.app/api/chat, or a relative
+      // path like "/api/chat" if the widget is hosted on the same site).
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: history,
+          businessContext: businessContext
+        })
+      });
+
+      const data = await response.json();
+      const reply = data.reply || "Sorry, could you rephrase that?";
+
+      typingEl.remove();
+      addMessage(reply, 'bot');
+      history.push({ role: 'assistant', content: reply });
+
+    } catch (err) {
+      typingEl.remove();
+      addMessage("Sorry, I'm having trouble connecting right now. Please try again in a moment.", 'bot');
+    }
+
+    userInput.disabled = false;
+    sendBtn.disabled = false;
+    userInput.focus();
+  }
+</script>
+
+</body>
+</html>
